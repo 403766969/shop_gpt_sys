@@ -1,11 +1,7 @@
 <template>
   <div id="users">
     <!-- 面包屑导航 -->
-    <el-breadcrumb separator-class="el-icon-arrow-right">
-      <el-breadcrumb-item :to="{ path: '/home' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item>用户管理</el-breadcrumb-item>
-      <el-breadcrumb-item>用户列表</el-breadcrumb-item>
-    </el-breadcrumb>
+    <my-breadcrumb :navs="navs" />
     <!-- 卡片视图区 -->
     <el-card>
       <!-- 搜索与添加区 -->
@@ -22,48 +18,30 @@
         </el-col>
       </el-row>
       <!-- 用户列表区 -->
-      <el-table :data="userList" border stripe>
-        <el-table-column type="index"></el-table-column>
-        <el-table-column prop="username" label="姓名"></el-table-column>
-        <el-table-column prop="email" label="邮箱"></el-table-column>
-        <el-table-column prop="mobile" label="电话"></el-table-column>
-        <el-table-column prop="role_name" label="角色"></el-table-column>
-        <el-table-column label="状态">
-          <template v-slot="scope">
-            <el-switch v-model="scope.row.mg_state" @change="editState(scope.row)"></el-switch>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="200px">
-          <template v-slot="scope">
-            <el-button
-              type="primary"
-              icon="el-icon-edit"
-              size="mini"
-              @click="showEditDialog(scope.row.id)"
-            ></el-button>
-            <el-button
-              type="danger"
-              icon="el-icon-delete"
-              size="mini"
-              @click="showDeleteMsg(scope.row.id)"
-            ></el-button>
-            <el-button type="warning" icon="el-icon-setting" size="mini"></el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+      <my-table
+        :list="userList"
+        :columns="columns"
+        @editClick="showEditDialog"
+        @deleteClick="showDeleteMsg"
+        @settingClick="showSettingDialog"
+      >
+        <template #mg_state="scope">
+          <el-switch v-model="scope.row.mg_state" @change="changeUserState(scope.row)"></el-switch>
+        </template>
+      </my-table>
       <!-- 分页区 -->
       <el-pagination
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
         layout="total, sizes, prev, pager, next, jumper"
         :current-page="queryInfo.pagenum"
         :page-sizes="[1, 5, 10, 30, 50]"
         :page-size="queryInfo.pagesize"
         :total="total"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
       ></el-pagination>
       <!-- 添加用户对话框 -->
-      <el-dialog title="添加用户" :visible.sync="isShowAddDialog" width="50%" @close="closeAddDialog">
-        <el-form :model="addForm" :rules="addFormRules" ref="addFormRef" label-width="70px">
+      <el-dialog title="添加用户" :visible.sync="isShowAddDialog" width="50%" @close="addDialogClosed">
+        <el-form :model="addForm" :rules="formRules" ref="addFormRef" label-width="70px">
           <el-form-item label="用户名" prop="username">
             <el-input v-model="addForm.username"></el-input>
           </el-form-item>
@@ -83,8 +61,13 @@
         </template>
       </el-dialog>
       <!-- 修改用户对话框 -->
-      <el-dialog title="修改用户" :visible.sync="isShowEditDialog" width="50%" @close="closeEditDialog">
-        <el-form :model="editForm" :rules="editFormRules" ref="editFormRef" label-width="70px">
+      <el-dialog
+        title="修改用户"
+        :visible.sync="isShowEditDialog"
+        width="50%"
+        @close="editDialogClosed"
+      >
+        <el-form :model="editForm" :rules="formRules" ref="editFormRef" label-width="70px">
           <el-form-item label="用户名">
             <el-input v-model="editForm.username" disabled></el-input>
           </el-form-item>
@@ -105,11 +88,19 @@
 </template>
 
 <script>
-import { getUserListApi, editUserStateApi, addUserApi, getUserApi, editUserApi, deleteUserApi } from 'network/api'
+import MyBreadcrumb from 'components/mybreadcrumb/MyBreadcrumb'
+import MyTable from 'components/mytable/MyTable'
+
+import { getUserListApi, getUserApi, addUserApi, editUserApi, deleteUserApi, changeUserStateApi } from 'network/api'
 
 export default {
   name: 'Users',
+  components: {
+    MyBreadcrumb,
+    MyTable
+  },
   data() {
+    // 手机格式验证
     const checkMobile = (rule, value, callback) => {
       if (!value) {
         return callback()
@@ -121,25 +112,45 @@ export default {
       callback(new Error('请输入合法的手机'))
     }
     return {
+      // 面包屑导航
+      navs: [
+        { name: '首页', path: '/home' },
+        { name: '用户管理', path: '' },
+        { name: '用户列表', path: '' }
+      ],
+      // 表格显示的列
+      columns: [
+        { name: 'username', label: '用户名' },
+        { name: 'email', label: '邮箱' },
+        { name: 'mobile', label: '电话' },
+        { name: 'role_name', label: '角色' },
+        { name: 'mg_state', label: '状态' }
+      ],
       // 用户列表
       userList: [],
       // 总用户数
       total: 0,
-      // 查询参数
+      // 查询用户参数
       queryInfo: {
         query: '',
         pagenum: 1,
         pagesize: 10
       },
-      // 添加用户
+      // 是否显示添加用户对话框
+      isShowAddDialog: false,
+      // 是否显示修改用户对话框
+      isShowEditDialog: false,
+      // 添加用户表单
       addForm: {
         usernmae: '',
         password: '',
         email: '',
         mobile: ''
       },
-      // 验证规则
-      addFormRules: {
+      // 修改用户表单
+      editForm: {},
+      // 表单验证规则
+      formRules: {
         username: [
           { required: true, message: '请输入用户名', trigger: 'blur' },
           { min: 1, max: 16, message: '长度在 1 到 16 个字符', trigger: 'blur' }
@@ -154,25 +165,20 @@ export default {
         mobile: [
           { validator: checkMobile, trigger: 'blur' }
         ]
-      },
-      // 是否显示添加对话框
-      isShowAddDialog: false,
-      // 修改用户
-      editForm: {},
-      // 验证规则
-      editFormRules: {
-        email: [
-          { type: 'email', message: '请输入合法的邮箱', trigger: 'blur' }
-        ],
-        mobile: [
-          { validator: checkMobile, trigger: 'blur' }
-        ]
-      },
-      // 是否显示修改对话框
-      isShowEditDialog: false
+      }
     }
   },
   methods: {
+    // 设置每页显示数据条数
+    handleSizeChange(newSize) {
+      this.queryInfo.pagesize = newSize
+      this.getUserList(this.queryInfo)
+    },
+    // 设置当前页数
+    handleCurrentChange(newPage) {
+      this.queryInfo.pagenum = newPage
+      this.getUserList(this.queryInfo)
+    },
     // 获取用户列表
     async getUserList() {
       const { data: res } = await getUserListApi(this.queryInfo)
@@ -187,41 +193,8 @@ export default {
       this.userList = res.data.users
       this.total = res.data.total
     },
-    // 设置用户状态
-    async editState(userInfo) {
-      const data = {
-        id: userInfo.id,
-        state: userInfo.mg_state
-      }
-      const { data: res } = await editUserStateApi(data)
-      if (res.meta.status !== 200) {
-        userInfo.mg_state = !userInfo.mg_state
-        return this.$message.error({
-          duration: 3000,
-          showClose: true,
-          center: true,
-          message: res.meta.msg
-        })
-      }
-      this.$message.success({
-        duration: 3000,
-        showClose: true,
-        center: true,
-        message: res.meta.msg
-      })
-    },
-    // 设置每页显示数据条数
-    handleSizeChange(newSize) {
-      this.queryInfo.pagesize = newSize
-      this.getUserList(this.queryInfo)
-    },
-    // 设置当前页数
-    handleCurrentChange(newPage) {
-      this.queryInfo.pagenum = newPage
-      this.getUserList(this.queryInfo)
-    },
-    // 关闭添加用户对话框
-    closeAddDialog() {
+    // 关闭添加用户对话框时
+    addDialogClosed() {
       this.$refs.addFormRef.resetFields()
     },
     // 添加用户
@@ -249,9 +222,9 @@ export default {
       })
     },
     // 显示修改用户对话框
-    async showEditDialog(id) {
+    async showEditDialog(row) {
       this.isShowEditDialog = true
-      const { data: res } = await getUserApi({ id })
+      const { data: res } = await getUserApi({ id: row.id })
       if (res.meta.status !== 200) {
         return this.$message.error({
           duration: 3000,
@@ -262,8 +235,8 @@ export default {
       }
       this.editForm = res.data
     },
-    // 关闭修改用户对话框
-    closeEditDialog() {
+    // 关闭修改用户对话框时
+    editDialogClosed() {
       this.$refs.editFormRef.resetFields()
     },
     // 修改用户
@@ -291,14 +264,14 @@ export default {
       })
     },
     // 显示删除用户提示框
-    async showDeleteMsg(id) {
+    async showDeleteMsg(row) {
       try {
         const res = await this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
         })
-        this.deleteUser(id)
+        this.deleteUser(row.id)
       } catch (error) {
         this.$message({
           type: 'info',
@@ -324,6 +297,38 @@ export default {
         message: res.meta.msg
       })
       this.getUserList()
+    },
+    // 显示分配角色对话框
+    async showSettingDialog(row) {
+    },
+    // 分配角色对话框关闭时
+    settingDialogClosed() {
+    },
+    // 分配角色
+    async settingRole() {
+    },
+    // 设置用户状态
+    async changeUserState(row) {
+      const data = {
+        id: row.id,
+        state: row.mg_state
+      }
+      const { data: res } = await changeUserStateApi(data)
+      if (res.meta.status !== 200) {
+        row.mg_state = !row.mg_state
+        return this.$message.error({
+          duration: 3000,
+          showClose: true,
+          center: true,
+          message: res.meta.msg
+        })
+      }
+      this.$message.success({
+        duration: 3000,
+        showClose: true,
+        center: true,
+        message: res.meta.msg
+      })
     }
   },
   created() {
