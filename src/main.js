@@ -3,12 +3,10 @@ import App from './App.vue'
 import router from './router'
 import './plugins/element.js'
 
-// 初始化样式
+// 样式
 import 'assets/css/base.css'
-
-// axios
-import axios from 'network/axios'
-Vue.prototype.$http = axios
+import 'assets/css/global.css'
+import 'assets/css/normalize.css'
 
 Vue.config.productionTip = false
 

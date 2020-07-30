@@ -5,6 +5,8 @@ Vue.use(VueRouter)
 
 const Login = () => import('views/Login')
 const Home = () => import('views/Home')
+const Welcome = () => import('components/Welcome')
+const Users = () => import('components/users/Users')
 
 const routes = [
   {
@@ -25,7 +27,26 @@ const routes = [
     meta: {
       title: '首页'
     },
-    component: Home
+    component: Home,
+    redirect: '/home/welcome',
+    children: [
+      {
+        path: 'welcome',
+        name: 'Welcome',
+        meta: {
+          title: '欢迎'
+        },
+        component: Welcome
+      },
+      {
+        path: 'users',
+        name: 'Users',
+        meta: {
+          title: '用户列表'
+        },
+        component: Users
+      }
+    ]
   }
 ]
 

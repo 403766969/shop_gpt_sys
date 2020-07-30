@@ -34,6 +34,8 @@
 </template>
 
 <script>
+import { loginApi } from 'network/api'
+
 export default {
   name: 'Login',
   data() {
@@ -58,24 +60,23 @@ export default {
     loginClick() {
       this.$refs.loginFormRef.validate(async isValid => {
         if (isValid) {
-          const res = await this.$http.post('login', this.loginForm)
-          if (res.meta.status === 200) {
-            this.$message.success({
-              duration: 3000,
-              showClose: true,
-              center: true,
-              message: '登录成功！'
-            })
-            window.sessionStorage.setItem('token', res.data.token)
-            this.$router.push('/home')
-          } else {
-            this.$message.error({
+          const { data: res } = await loginApi(this.loginForm)
+          if (res.meta.status !== 200) {
+            return this.$message.error({
               duration: 3000,
               showClose: true,
               center: true,
               message: `登录失败！${res.meta.msg}`
             })
           }
+          this.$message.success({
+            duration: 3000,
+            showClose: true,
+            center: true,
+            message: '登录成功！'
+          })
+          window.sessionStorage.setItem('token', res.data.token)
+          this.$router.push('/home')
         }
       })
     },
