@@ -14,7 +14,7 @@
           </el-input>
         </el-col>
         <el-col :span="4">
-          <el-button type="primary" @click="isShowAddDialog = true">添加</el-button>
+          <el-button type="primary" @click="isShowAddDialog = true">添加用户</el-button>
         </el-col>
       </el-row>
       <!-- 用户列表区 -->
@@ -39,7 +39,13 @@
       />
     </el-card>
     <!-- 添加用户对话框 -->
-    <el-dialog title="添加用户" :visible.sync="isShowAddDialog" width="50%" @close="addDialogClosed">
+    <el-dialog
+      title="添加用户"
+      :visible.sync="isShowAddDialog"
+      :close-on-click-modal="false"
+      width="50%"
+      @close="addDialogClosed"
+    >
       <el-form :model="addForm" :rules="formRules" ref="addFormRef" label-width="70px">
         <el-form-item label="用户名" prop="username">
           <el-input v-model="addForm.username"></el-input>
@@ -59,8 +65,14 @@
         <el-button type="primary" @click="addUser">确 定</el-button>
       </template>
     </el-dialog>
-    <!-- 修改用户对话框 -->
-    <el-dialog title="修改用户" :visible.sync="isShowEditDialog" width="50%" @close="editDialogClosed">
+    <!-- 编辑用户对话框 -->
+    <el-dialog
+      title="编辑用户"
+      :visible.sync="isShowEditDialog"
+      :close-on-click-modal="false"
+      width="50%"
+      @close="editDialogClosed"
+    >
       <el-form :model="editForm" :rules="formRules" ref="editFormRef" label-width="70px">
         <el-form-item label="用户名">
           <el-input v-model="editForm.username" disabled></el-input>
@@ -77,6 +89,34 @@
         <el-button type="primary" @click="editUser">确 定</el-button>
       </template>
     </el-dialog>
+    <!-- 分配角色对话框 -->
+    <el-dialog
+      title="分配角色"
+      :visible.sync="isShowSettingDialog"
+      :close-on-click-modal="false"
+      width="50%"
+      @close="settingDialogClosed"
+    >
+      <div class="setting-div">
+        <p>当前的用户: {{setRole_userInfo.username}}</p>
+        <p>当前的角色: {{setRole_userInfo.role_name}}</p>
+        <p>
+          分配新角色:
+          <el-select v-model="roleSelected" placeholder="请选择角色">
+            <el-option
+              v-for="item in roleList"
+              :key="item.id"
+              :label="item.roleName"
+              :value="item.id"
+            ></el-option>
+          </el-select>
+        </p>
+      </div>
+      <template #footer>
+        <el-button @click="isShowSettingDialog = false">取 消</el-button>
+        <el-button type="primary" @click="setRole">确 定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -85,7 +125,7 @@ import MyBreadcrumb from 'components/common/mybreadcrumb/MyBreadcrumb'
 import MyPagination from 'components/common/mypagination/MyPagination'
 import MyTable from 'components/common/mytable/MyTable'
 
-import { getUserListApi, getUserApi, addUserApi, editUserApi, deleteUserApi, changeUserStateApi } from 'network/api'
+import { getUserListApi, getUserApi, addUserApi, editUserApi, deleteUserApi, changeUserStateApi, getRoleListApi, setUserRoleApi } from 'network/api'
 
 export default {
   name: 'Users',
@@ -133,8 +173,10 @@ export default {
       total: 0,
       // 是否显示添加用户对话框
       isShowAddDialog: false,
-      // 是否显示修改用户对话框
+      // 是否显示编辑用户对话框
       isShowEditDialog: false,
+      // 是否显示分配角色对话框
+      isShowSettingDialog: false,
       // 添加用户表单
       addForm: {
         usernmae: '',
@@ -142,7 +184,7 @@ export default {
         email: '',
         mobile: ''
       },
-      // 修改用户表单
+      // 编辑用户表单
       editForm: {},
       // 表单验证规则
       formRules: {
@@ -160,7 +202,13 @@ export default {
         mobile: [
           { validator: checkMobile, trigger: 'blur' }
         ]
-      }
+      },
+      // 需要设置角色的用户
+      setRole_userInfo: {},
+      // 角色列表
+      roleList: [],
+      // 选择的角色
+      roleSelected: ''
     }
   },
   methods: {
@@ -183,6 +231,14 @@ export default {
       this.userList = res.data.users
       this.total = res.data.total
     },
+    // 获取角色列表
+    async getRoleList() {
+      const { data: res } = await getRoleListApi()
+      if (res.meta.status !== 200) {
+        return this.$message.show(res.meta.msg, 'error')
+      }
+      this.roleList = res.data
+    },
     // 关闭添加用户对话框时
     addDialogClosed() {
       this.$refs.addFormRef.resetFields()
@@ -201,7 +257,7 @@ export default {
         }
       })
     },
-    // 显示修改用户对话框
+    // 显示编辑用户对话框
     async showEditDialog(row) {
       this.isShowEditDialog = true
       const { data: res } = await getUserApi({ id: row.id })
@@ -210,11 +266,11 @@ export default {
       }
       this.editForm = res.data
     },
-    // 关闭修改用户对话框时
+    // 关闭编辑用户对话框时
     editDialogClosed() {
       this.$refs.editFormRef.resetFields()
     },
-    // 修改用户
+    // 编辑用户
     editUser() {
       this.$refs.editFormRef.validate(async isValid => {
         if (isValid) {
@@ -252,12 +308,31 @@ export default {
     },
     // 显示分配角色对话框
     async showSettingDialog(row) {
+      this.isShowSettingDialog = true
+      this.setRole_userInfo = row
+      this.getRoleList()
     },
     // 分配角色对话框关闭时
     settingDialogClosed() {
+      this.setRole_userInfo = {}
+      this.roleSelected = ''
     },
     // 分配角色
-    async settingRole() {
+    async setRole() {
+      if (!this.roleSelected) {
+        return this.$message.show('请选择要分配的角色', 'error')
+      }
+      const payload = {
+        userId: this.setRole_userInfo.id,
+        roleId: this.roleSelected
+      }
+      const { data: res } = await setUserRoleApi(payload)
+      if (res.meta.status !== 200) {
+        return this.$message.show(res.meta.msg, 'error')
+      }
+      this.$message.show(res.meta.msg, 'success')
+      this.isShowSettingDialog = false
+      this.getUserList()
     },
     // 设置用户状态
     async changeUserState(row) {
@@ -275,9 +350,15 @@ export default {
   },
   created() {
     this.getUserList()
+    this.getRoleList()
   }
 }
 </script>
 
 <style lang="less" scoped>
+.setting-div {
+  p {
+    line-height: 30px;
+  }
+}
 </style>

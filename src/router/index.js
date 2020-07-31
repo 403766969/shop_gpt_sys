@@ -7,6 +7,8 @@ const Login = () => import('views/Login')
 const Home = () => import('views/Home')
 const Welcome = () => import('components/content/welcome/Welcome')
 const Users = () => import('components/content/users/Users')
+const Rights = () => import('components/content/rights/Rights')
+const Roles = () => import('components/content/rights/Roles')
 
 const routes = [
   {
@@ -45,6 +47,22 @@ const routes = [
           title: '用户列表'
         },
         component: Users
+      },
+      {
+        path: 'rights',
+        name: 'Rights',
+        meta: {
+          title: '权限列表'
+        },
+        component: Rights
+      },
+      {
+        path: 'roles',
+        name: 'Roles',
+        meta: {
+          title: '角色列表'
+        },
+        component: Roles
       }
     ]
   }

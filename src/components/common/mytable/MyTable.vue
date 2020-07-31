@@ -1,18 +1,18 @@
 <template>
   <div class="my-table">
     <el-table :data="list" border stripe>
+      <el-table-column v-if="isShowExpand" type="expand">
+        <template v-slot="scope">
+          <slot name="expand" :row="scope.row"></slot>
+        </template>
+      </el-table-column>
       <el-table-column v-if="isShowIndex" type="index"></el-table-column>
-      <el-table-column
-        v-for="item in columns"
-        :key="item.name"
-        :prop="item.name"
-        :label="item.label"
-      >
+      <el-table-column v-for="item in columns" :key="item.name" :label="item.label">
         <template v-slot="scope">
           <slot :name="item.name" :row="scope.row">{{scope.row[item.name]}}</slot>
         </template>
       </el-table-column>
-      <el-table-column v-if="isShowOperation" label="操作" width="200px">
+      <el-table-column v-if="isShowOperation" label="操作" min-width="200px">
         <template v-slot="scope">
           <el-button
             v-if="isShowEdit"
@@ -65,12 +65,17 @@ export default {
       type: Boolean,
       default: true
     },
+    // 是否显示展开列
+    isShowExpand: {
+      type: Boolean,
+      default: false
+    },
     // 是否显示操作列
     isShowOperation: {
       type: Boolean,
       default: true
     },
-    // 是否显示修改按钮
+    // 是否显示编辑按钮
     isShowEdit: {
       type: Boolean,
       default: true
@@ -80,14 +85,14 @@ export default {
       type: Boolean,
       default: true
     },
-    // 是否显示分配按钮
+    // 是否显示设置按钮
     isShowSetting: {
       type: Boolean,
       default: true
     }
   },
   methods: {
-    // 点击修改按钮
+    // 点击编辑按钮
     editClick(row) {
       this.$emit('editClick', row)
     },
@@ -107,7 +112,7 @@ export default {
 .my-table {
   margin-top: 15px;
   .el-table th.gutter {
-    display: table-cell;
+    display: table-cell !important;
   }
 }
 </style>
