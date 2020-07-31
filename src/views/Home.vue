@@ -74,12 +74,7 @@ export default {
     async getMenuList() {
       const { data: res } = await getMenuListApi()
       if (res.meta.status !== 200) {
-        return this.$message.error({
-          duration: 3000,
-          showClose: true,
-          center: true,
-          message: res.meta.msg
-        })
+        return this.$message.show(res.meta.msg, 'error')
       }
       this.menuList = res.data
     },

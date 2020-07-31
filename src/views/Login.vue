@@ -62,19 +62,9 @@ export default {
         if (isValid) {
           const { data: res } = await loginApi(this.loginForm)
           if (res.meta.status !== 200) {
-            return this.$message.error({
-              duration: 3000,
-              showClose: true,
-              center: true,
-              message: `登录失败！${res.meta.msg}`
-            })
+            return this.$message.show(res.meta.msg, 'error')
           }
-          this.$message.success({
-            duration: 3000,
-            showClose: true,
-            center: true,
-            message: '登录成功！'
-          })
+          this.$message.show(res.meta.msg, 'success')
           window.sessionStorage.setItem('token', res.data.token)
           this.$router.push('/home')
         }

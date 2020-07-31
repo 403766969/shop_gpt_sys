@@ -48,5 +48,15 @@ Vue.use(Pagination)
 Vue.use(Dialog)
 
 Vue.prototype.$message = Message
-Vue.prototype.$confirm = MessageBox.confirm
+Vue.prototype.$message.show = (msg, type) => {
+  Message.closeAll()
+  Message({
+    message: msg,
+    type: type,
+    showClose: true,
+    center: true,
+    duration: 3000
+  })
+}
 
+Vue.prototype.$confirm = MessageBox.confirm

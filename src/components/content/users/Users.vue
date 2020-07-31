@@ -30,66 +30,60 @@
         </template>
       </my-table>
       <!-- 分页区 -->
-      <el-pagination
-        layout="total, sizes, prev, pager, next, jumper"
+      <my-pagination
         :current-page="queryInfo.pagenum"
-        :page-sizes="[1, 5, 10, 30, 50]"
         :page-size="queryInfo.pagesize"
         :total="total"
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-      ></el-pagination>
-      <!-- 添加用户对话框 -->
-      <el-dialog title="添加用户" :visible.sync="isShowAddDialog" width="50%" @close="addDialogClosed">
-        <el-form :model="addForm" :rules="formRules" ref="addFormRef" label-width="70px">
-          <el-form-item label="用户名" prop="username">
-            <el-input v-model="addForm.username"></el-input>
-          </el-form-item>
-          <el-form-item label="密码" prop="password">
-            <el-input v-model="addForm.password"></el-input>
-          </el-form-item>
-          <el-form-item label="邮箱" prop="email">
-            <el-input v-model="addForm.email"></el-input>
-          </el-form-item>
-          <el-form-item label="手机" prop="mobile">
-            <el-input v-model="addForm.mobile"></el-input>
-          </el-form-item>
-        </el-form>
-        <template #footer>
-          <el-button @click="isShowAddDialog = false">取 消</el-button>
-          <el-button type="primary" @click="addUser">确 定</el-button>
-        </template>
-      </el-dialog>
-      <!-- 修改用户对话框 -->
-      <el-dialog
-        title="修改用户"
-        :visible.sync="isShowEditDialog"
-        width="50%"
-        @close="editDialogClosed"
-      >
-        <el-form :model="editForm" :rules="formRules" ref="editFormRef" label-width="70px">
-          <el-form-item label="用户名">
-            <el-input v-model="editForm.username" disabled></el-input>
-          </el-form-item>
-          <el-form-item label="邮箱" prop="email">
-            <el-input v-model="editForm.email"></el-input>
-          </el-form-item>
-          <el-form-item label="手机" prop="mobile">
-            <el-input v-model="editForm.mobile"></el-input>
-          </el-form-item>
-        </el-form>
-        <template #footer>
-          <el-button @click="isShowEditDialog = false">取 消</el-button>
-          <el-button type="primary" @click="editUser">确 定</el-button>
-        </template>
-      </el-dialog>
+        @handleCurrentChange="handleCurrentChange"
+        @handleSizeChange="handleSizeChange"
+      />
     </el-card>
+    <!-- 添加用户对话框 -->
+    <el-dialog title="添加用户" :visible.sync="isShowAddDialog" width="50%" @close="addDialogClosed">
+      <el-form :model="addForm" :rules="formRules" ref="addFormRef" label-width="70px">
+        <el-form-item label="用户名" prop="username">
+          <el-input v-model="addForm.username"></el-input>
+        </el-form-item>
+        <el-form-item label="密码" prop="password">
+          <el-input v-model="addForm.password"></el-input>
+        </el-form-item>
+        <el-form-item label="邮箱" prop="email">
+          <el-input v-model="addForm.email"></el-input>
+        </el-form-item>
+        <el-form-item label="手机" prop="mobile">
+          <el-input v-model="addForm.mobile"></el-input>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="isShowAddDialog = false">取 消</el-button>
+        <el-button type="primary" @click="addUser">确 定</el-button>
+      </template>
+    </el-dialog>
+    <!-- 修改用户对话框 -->
+    <el-dialog title="修改用户" :visible.sync="isShowEditDialog" width="50%" @close="editDialogClosed">
+      <el-form :model="editForm" :rules="formRules" ref="editFormRef" label-width="70px">
+        <el-form-item label="用户名">
+          <el-input v-model="editForm.username" disabled></el-input>
+        </el-form-item>
+        <el-form-item label="邮箱" prop="email">
+          <el-input v-model="editForm.email"></el-input>
+        </el-form-item>
+        <el-form-item label="手机" prop="mobile">
+          <el-input v-model="editForm.mobile"></el-input>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="isShowEditDialog = false">取 消</el-button>
+        <el-button type="primary" @click="editUser">确 定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import MyBreadcrumb from 'components/mybreadcrumb/MyBreadcrumb'
-import MyTable from 'components/mytable/MyTable'
+import MyBreadcrumb from 'components/common/mybreadcrumb/MyBreadcrumb'
+import MyPagination from 'components/common/mypagination/MyPagination'
+import MyTable from 'components/common/mytable/MyTable'
 
 import { getUserListApi, getUserApi, addUserApi, editUserApi, deleteUserApi, changeUserStateApi } from 'network/api'
 
@@ -97,6 +91,7 @@ export default {
   name: 'Users',
   components: {
     MyBreadcrumb,
+    MyPagination,
     MyTable
   },
   data() {
@@ -115,9 +110,11 @@ export default {
       // 面包屑导航
       navs: [
         { name: '首页', path: '/home' },
-        { name: '用户管理', path: '' },
-        { name: '用户列表', path: '' }
+        { name: '用户管理' },
+        { name: '用户列表' }
       ],
+      // 用户列表
+      userList: [],
       // 表格显示的列
       columns: [
         { name: 'username', label: '用户名' },
@@ -126,16 +123,14 @@ export default {
         { name: 'role_name', label: '角色' },
         { name: 'mg_state', label: '状态' }
       ],
-      // 用户列表
-      userList: [],
-      // 总用户数
-      total: 0,
       // 查询用户参数
       queryInfo: {
         query: '',
         pagenum: 1,
         pagesize: 10
       },
+      // 总用户数
+      total: 0,
       // 是否显示添加用户对话框
       isShowAddDialog: false,
       // 是否显示修改用户对话框
@@ -169,26 +164,21 @@ export default {
     }
   },
   methods: {
+    // 设置当前页码
+    handleCurrentChange(newPage) {
+      this.queryInfo.pagenum = newPage
+      this.getUserList(this.queryInfo)
+    },
     // 设置每页显示数据条数
     handleSizeChange(newSize) {
       this.queryInfo.pagesize = newSize
-      this.getUserList(this.queryInfo)
-    },
-    // 设置当前页数
-    handleCurrentChange(newPage) {
-      this.queryInfo.pagenum = newPage
       this.getUserList(this.queryInfo)
     },
     // 获取用户列表
     async getUserList() {
       const { data: res } = await getUserListApi(this.queryInfo)
       if (res.meta.status !== 200) {
-        return this.$message.error({
-          duration: 3000,
-          showClose: true,
-          center: true,
-          message: res.meta.msg
-        })
+        return this.$message.show(res.meta.msg, 'error')
       }
       this.userList = res.data.users
       this.total = res.data.total
@@ -203,19 +193,9 @@ export default {
         if (isValid) {
           const { data: res } = await addUserApi(this.addForm)
           if (res.meta.status !== 201) {
-            return this.$message.error({
-              duration: 3000,
-              showClose: true,
-              center: true,
-              message: res.meta.msg
-            })
+            return this.$message.show(res.meta.msg, 'error')
           }
-          this.$message.success({
-            duration: 3000,
-            showClose: true,
-            center: true,
-            message: res.meta.msg
-          })
+          this.$message.show(res.meta.msg, 'success')
           this.isShowAddDialog = false
           this.getUserList()
         }
@@ -226,12 +206,7 @@ export default {
       this.isShowEditDialog = true
       const { data: res } = await getUserApi({ id: row.id })
       if (res.meta.status !== 200) {
-        return this.$message.error({
-          duration: 3000,
-          showClose: true,
-          center: true,
-          message: res.meta.msg
-        })
+        return this.$message.show(res.meta.msg, 'error')
       }
       this.editForm = res.data
     },
@@ -245,19 +220,9 @@ export default {
         if (isValid) {
           const { data: res } = await editUserApi(this.editForm)
           if (res.meta.status !== 200) {
-            return this.$message.error({
-              duration: 3000,
-              showClose: true,
-              center: true,
-              message: res.meta.msg
-            })
+            return this.$message.show(res.meta.msg, 'error')
           }
-          this.$message.success({
-            duration: 3000,
-            showClose: true,
-            center: true,
-            message: res.meta.msg
-          })
+          this.$message.show(res.meta.msg, 'success')
           this.isShowEditDialog = false
           this.getUserList()
         }
@@ -273,29 +238,16 @@ export default {
         })
         this.deleteUser(row.id)
       } catch (error) {
-        this.$message({
-          type: 'info',
-          message: '已取消删除'
-        })
+        this.$message.show('已取消删除', 'info')
       }
     },
     // 删除用户
     async deleteUser(id) {
       const { data: res } = await deleteUserApi({ id })
       if (res.meta.status !== 200) {
-        return this.$message.error({
-          duration: 3000,
-          showClose: true,
-          center: true,
-          message: res.meta.msg
-        })
+        return this.$message.show(res.meta.msg, 'error')
       }
-      this.$message.success({
-        duration: 3000,
-        showClose: true,
-        center: true,
-        message: res.meta.msg
-      })
+      this.$message.show(res.meta.msg, 'success')
       this.getUserList()
     },
     // 显示分配角色对话框
@@ -316,19 +268,9 @@ export default {
       const { data: res } = await changeUserStateApi(data)
       if (res.meta.status !== 200) {
         row.mg_state = !row.mg_state
-        return this.$message.error({
-          duration: 3000,
-          showClose: true,
-          center: true,
-          message: res.meta.msg
-        })
+        return this.$message.show(res.meta.msg, 'error')
       }
-      this.$message.success({
-        duration: 3000,
-        showClose: true,
-        center: true,
-        message: res.meta.msg
-      })
+      this.$message.show(res.meta.msg, 'success')
     }
   },
   created() {
