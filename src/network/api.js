@@ -7,19 +7,19 @@ export const loginApi = payload => service.post('login', payload)
 export const getMenuListApi = () => service.get('menus')
 
 // 获取用户列表
-export const getUserListApi = data => service.get('users', { params: data })
+export const getUserListApi = payload => service.get('users', { params: payload })
 
 // 获取用户
-export const getUserApi = data => service.get(`users/${data.id}`)
+export const getUserApi = payload => service.get(`users/${payload.id}`)
 
 // 添加用户
-export const addUserApi = data => service.post('users', data)
+export const addUserApi = payload => service.post('users', payload)
 
 // 修改用户
-export const editUserApi = data => service.put(`users/${data.id}`, { email: data.email, mobile: data.mobile })
+export const editUserApi = payload => service.put(`users/${payload.id}`, { email: payload.email, mobile: payload.mobile })
 
 // 删除用户
-export const deleteUserApi = data => service.delete(`users/${data.id}`)
+export const deleteUserApi = payload => service.delete(`users/${payload.id}`)
 
 // 修改用户状态
-export const changeUserStateApi = data => service.put(`users/${data.id}/state/${data.state}`)
+export const changeUserStateApi = payload => service.put(`users/${payload.id}/state/${payload.state}`)

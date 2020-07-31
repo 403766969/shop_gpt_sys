@@ -261,11 +261,11 @@ export default {
     },
     // 设置用户状态
     async changeUserState(row) {
-      const data = {
+      const payload = {
         id: row.id,
         state: row.mg_state
       }
-      const { data: res } = await changeUserStateApi(data)
+      const { data: res } = await changeUserStateApi(payload)
       if (res.meta.status !== 200) {
         row.mg_state = !row.mg_state
         return this.$message.show(res.meta.msg, 'error')
