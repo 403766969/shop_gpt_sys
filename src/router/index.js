@@ -66,6 +66,7 @@ VueRouter.prototype.replace = function push(path) {
   return originalReplace.call(this, path).catch(err => err)
 }
 
+// 全局路由导航，路由跳转时判断用户token
 router.beforeEach((to, from, next) => {
   if (to.path !== '/login') {
     const token = window.sessionStorage.getItem('token')
