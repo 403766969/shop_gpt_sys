@@ -7,9 +7,15 @@
       <!-- 搜索与添加区 -->
       <el-row :gutter="15">
         <el-col :span="8">
-          <el-input placeholder="请输入内容" v-model="queryInfo.query" @clear="getUserList" clearable>
+          <el-input
+            placeholder="请输入用户名"
+            v-model="queryInfo.query"
+            @keyup.enter.native="queryClick"
+            @clear="queryClick"
+            clearable
+          >
             <template #append>
-              <el-button icon="el-icon-search" @click="getUserList"></el-button>
+              <el-button icon="el-icon-search" @click="queryClick"></el-button>
             </template>
           </el-input>
         </el-col>
@@ -238,6 +244,11 @@ export default {
         return this.$message.show(res.meta.msg, 'error')
       }
       this.roleList = res.data
+    },
+    // 搜索用户
+    queryClick() {
+      this.queryInfo.pagenum = 1
+      this.getUserList()
     },
     // 关闭添加用户对话框时
     addDialogClosed() {

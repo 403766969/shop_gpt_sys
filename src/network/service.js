@@ -1,8 +1,9 @@
 import axios from 'axios'
+import { BASE_URL } from 'commonjs/const'
 
 // 创建axios实例
 const instance = axios.create({
-  baseURL: 'https://www.liulongbin.top:8888/api/private/v1/',
+  baseURL: BASE_URL,
   timeout: 5000
 })
 

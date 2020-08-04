@@ -1,13 +1,13 @@
 <template>
   <div class="my-table">
-    <el-table :data="list" border stripe>
+    <el-table :data="list" :row-key="rowKey" :border="border" :stripe="stripe">
       <el-table-column v-if="isShowExpand" type="expand">
         <template v-slot="scope">
           <slot name="expand" :row="scope.row"></slot>
         </template>
       </el-table-column>
       <el-table-column v-if="isShowIndex" type="index"></el-table-column>
-      <el-table-column v-for="item in columns" :key="item.name" :label="item.label">
+      <el-table-column v-for="item in columns" :key="item.name" :label="item.label" :min-width="item.minWidth">
         <template v-slot="scope">
           <slot :name="item.name" :row="scope.row">{{scope.row[item.name]}}</slot>
         </template>
@@ -89,7 +89,22 @@ export default {
     isShowSetting: {
       type: Boolean,
       default: true
-    }
+    },
+    // 当显示为树形表格时需要设置此项
+    rowKey: {
+      type: String,
+      default: ''
+    },
+    // 是否显示边框
+    border: {
+      type: Boolean,
+      default: true
+    },
+    // 是否显示斑马线
+    stripe: {
+      type: Boolean,
+      default: true
+    },
   },
   methods: {
     // 点击编辑按钮
