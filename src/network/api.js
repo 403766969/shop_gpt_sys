@@ -100,4 +100,7 @@ export const deleteGoodApi = payload => service.delete(`goods/${payload.goods_id
 export const getOrderListApi = payload => service.get('orders', { params: payload })
 
 // 获取物流信息
-export const getLogisticsApi = () => service.get(`kuaidi/1106975712662`)
+export const getLogisticsApi = () => service.get('kuaidi/1106975712662')
+
+// 获取数据报表
+export const getReportsDataApi = () => service.get('reports/type/1')

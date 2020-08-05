@@ -14,6 +14,7 @@ const Params = () => import('components/content/goods/Params')
 const Goods = () => import('components/content/goods/Goods')
 const Add = () => import('components/content/goods/Add')
 const Orders = () => import('components/content/orders/Orders')
+const Reports = () => import('components/content/reports/Reports')
 
 const routes = [
   {
@@ -108,6 +109,14 @@ const routes = [
           title: '订单管理'
         },
         component: Orders
+      },
+      {
+        path: '/reports',
+        name: 'Reports',
+        meta: {
+          title: '数据统计'
+        },
+        component: Reports
       }
     ]
   }
