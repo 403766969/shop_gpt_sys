@@ -142,12 +142,12 @@ export default {
     // 设置当前页码
     handleCurrentChange(newPage) {
       this.queryInfo.pagenum = newPage
-      this.getGoodList(this.queryInfo)
+      this.getGoodList()
     },
     // 设置每页显示数据条数
     handleSizeChange(newSize) {
       this.queryInfo.pagesize = newSize
-      this.getGoodList(this.queryInfo)
+      this.getGoodList()
     },
     // 获取商品列表
     async getGoodList() {

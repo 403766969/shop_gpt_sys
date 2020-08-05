@@ -221,12 +221,12 @@ export default {
     // 设置当前页码
     handleCurrentChange(newPage) {
       this.queryInfo.pagenum = newPage
-      this.getUserList(this.queryInfo)
+      this.getUserList()
     },
     // 设置每页显示数据条数
     handleSizeChange(newSize) {
       this.queryInfo.pagesize = newSize
-      this.getUserList(this.queryInfo)
+      this.getUserList()
     },
     // 获取用户列表
     async getUserList() {

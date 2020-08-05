@@ -95,3 +95,9 @@ export const editGoodApi = payload => service.put(`goods/${payload.goods_id}`, p
 
 // 删除商品
 export const deleteGoodApi = payload => service.delete(`goods/${payload.goods_id}`)
+
+// 获取订单列表
+export const getOrderListApi = payload => service.get('orders', { params: payload })
+
+// 获取物流信息
+export const getLogisticsApi = () => service.get(`kuaidi/1106975712662`)

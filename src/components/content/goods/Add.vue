@@ -158,7 +158,7 @@ export default {
           { type: 'number', min: 0, message: '商品数量必须大于等于0', trigger: 'blur' }
         ],
         goods_cat: [
-          { required: true, message: '请选择商品分类', trigger: 'blur' }
+          { required: true, message: '请选择商品分类', trigger: 'change' }
         ]
       },
       // 请求头
@@ -305,6 +305,9 @@ export default {
 </script>
 
 <style lang="less" scope>
+.el-cascader {
+  min-width: 250px;
+}
 .el-checkbox {
   margin: 0 5px 0 0 !important;
 }
