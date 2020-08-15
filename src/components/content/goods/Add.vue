@@ -323,4 +323,8 @@ export default {
 .ql-editor {
   min-height: 350px;
 }
+
+.el-cascader-panel {
+  max-height: 200px;
+}
 </style>
